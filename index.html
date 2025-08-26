@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <title>Freedom Fund Tracker</title>
+    <link rel="manifest" href="/freedom-fund-tracker/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Freedom Fund">
+    <link rel="apple-touch-icon" href="/freedom-fund-tracker/icon-192x192.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 10px;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .main-counter {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-counter::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .money-saved {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        }
+        
+        .subtitle {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .debt-tracker {
+            background: rgba(220, 38, 38, 0.2);
+            border: 2px solid rgba(220, 38, 38, 0.5);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .debt-tracker h3 {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .debt-progress {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .debt-fill {
+            background: linear-gradient(90deg, #00ff88, #00cc6a);
+            height: 100%;
+            transition: width 1s ease;
+            border-radius: 10px;
+        }
+        
+        .milestones {
+            margin-bottom: 20px;
+        }
+        
+        .milestones h3 {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .milestone {
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .milestone.achieved {
+            background: rgba(0, 255, 136, 0.3);
+            border: 2px solid #00ff88;
+            transform: scale(1.02);
+        }
+        
+        .milestone-content {
+            display: flex;
+            align-items: center;
+        }
+        
+        .milestone-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        
+        .status {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .reset-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .reset-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .reset-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .pb-display {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .pb-display h4 {
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+        
+        .motivational-quotes {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            text-align: center;
+            font-style: italic;
+            font-size: 0.9em;
+        }
+        
+        .daily-affirmation {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95em;
+            animation: pulse 4s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { opacity: 0.9; }
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .money-saved {
+                font-size: 2.2em;
+            }
+            
+            .main-counter {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Freedom Fund Tracker</h1>
+            <p>Every second builds your future</p>
+        </div>
+        
+        <div class="daily-affirmation" id="affirmation">
+            "I am someone who makes smart financial decisions"
+        </div>
+        
+        <div class="main-counter">
+            <div class="money-saved" id="moneySaved">£0.00</div>
+            <div class="subtitle">Money saved by choosing freedom</div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="dayStreak">0</div>
+                <div class="stat-label">Days Strong</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="hoursStreak">0</div>
+                <div class="stat-label">Hours Control</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="perSecond">£0.00017</div>
+                <div class="stat-label">Per Second</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="sessionsAvoided">0</div>
+                <div class="stat-label">Sessions Avoided</div>
+            </div>
+        </div>
+        
+        <div class="debt-tracker">
+            <h3>💪 Debt Reduction Progress</h3>
+            <p>Original: £8,000 • Remaining: <span id="remainingDebt">£8,000</span></p>
+            <div class="debt-progress">
+                <div class="debt-fill" id="debtFill" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="milestones">
+            <h3>🎁 Your Rewards:</h3>
+            <div class="milestone" data-amount="50">
+                <div class="milestone-content">
+                    <span class="milestone-icon">👨‍👧</span>
+                    <div>
+                        <strong>£50:</strong> Day out with Alex
+                    </div>
+                </div>
+                <div class="status">🔒</div>
+            </div>
+            <div class="milestone" data-amount="75">
+                <div class="milestone-content">
+                    <span class="milestone-icon">✨</span>
+                    <div>
+                        <strong>£75:</strong> Premium skincare
+                    </div>
+                </div>
+                <div class="status">🔒</div>
+            </div>
+            <div class="milestone" data-amount="150">
+                <div class="milestone-content">
+                    <span class="milestone-icon">👔</span>
+                    <div>
+                        <strong>£150:</strong> Designer shirt
+                    </div>
+                </div>
+                <div class="status">🔒</div>
+            </div>
+            <div class="milestone" data-amount="500">
+                <div class="milestone-content">
+                    <span class="milestone-icon">🎮</span>
+                    <div>
+                        <strong>£500:</strong> Gaming setup
+                    </div>
+                </div>
+                <div class="status">🔒</div>
+            </div>
+            <div class="milestone" data-amount="1000">
+                <div class="milestone-content">
+                    <span class="milestone-icon">💻</span>
+                    <div>
+                        <strong>£1,000:</strong> New tech
+                    </div>
+                </div>
+                <div class="status">🔒</div>
+            </div>
+            <div class="milestone" data-amount="3000">
+                <div class="milestone-content">
+                    <span class="milestone-icon">🏖️</span>
+                    <div>
+                        <strong>£3,000:</strong> Family holiday
+                    </div>
+                </div>
+                <div class="status">🔒</div>
+            </div>
+        </div>
+        
+        <div class="reset-section">
+            <button class="reset-btn" onclick="confirmReset()">Reset Counter</button>
+            <div class="pb-display" id="pbDisplay">
+                <h4>🏆 Personal Best</h4>
+                <p id="pbText">Start your journey!</p>
+            </div>
+        </div>
+        
+        <div class="motivational-quotes">
+            <p id="quote">"Every pound saved is a step toward freedom."</p>
+        </div>
+    </div>
+
+    <script>
+        // Register service worker for offline functionality
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/freedom-fund-tracker/service-worker.js');
+        }
+        
+        // Start time and settings
+        let startTime = getStartTime();
+        let personalBest = parseInt(localStorage.getItem('personalBest') || '0');
+        
+        const dailyAmount = 15; // £15 per day
+        const perSecondAmount = dailyAmount / (24 * 60 * 60);
+        const sessionAmount = 225; // Average £225 per gambling session
+        
+        const quotes = [
+            "Every pound saved is a step toward freedom.",
+            "You're not just saving money - you're reclaiming control.",
+            "The house always wins, but today YOU choose not to play.",
+            "Your future self thanks you for this moment of strength.",
+            "Financial freedom isn't luck - it's choice by choice.",
+            "Every second of control builds the person you're becoming.",
+            "You're not missing out - you're winning differently."
+        ];
+        
+        const affirmations = [
+            "I am someone who makes smart financial decisions",
+            "I control my money, my money doesn't control me", 
+            "I choose my family's future over temporary thrills",
+            "I am building wealth, not giving it away",
+            "My financial wisdom grows stronger every day",
+            "I invest in experiences, not false promises"
+        ];
+        
+        function getStartTime() {
+            const saved = localStorage.getItem('startTime');
+            if (saved) {
+                return parseInt(saved);
+            }
+            
+            // Set to 6am today
+            const now = new Date();
+            const sixAM = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6, 0, 0, 0);
+            
+            if (now < sixAM) {
+                sixAM.setDate(sixAM.getDate() - 1);
+            }
+            
+            const startTime = sixAM.getTime();
+            localStorage.setItem('startTime', startTime.toString());
+            return startTime;
+        }
+        
+        function updateCounter() {
+            const now = Date.now();
+            const elapsed = (now - startTime) / 1000; // seconds elapsed
+            const savedAmount = elapsed * perSecondAmount;
+            
+            // Update main counter
+            document.getElementById('moneySaved').textContent = `£${savedAmount.toFixed(2)}`;
+            
+            // Update stats
+            const days = Math.floor(elapsed / (24 * 60 * 60));
+            const hours = Math.floor(elapsed / (60 * 60));
+            const sessionsAvoided = Math.floor(savedAmount / sessionAmount);
+            
+            document.getElementById('dayStreak').textContent = days;
+            document.getElementById('hoursStreak').textContent = hours;
+            document.getElementById('perSecond').textContent = `£${perSecondAmount.toFixed(5)}`;
+            document.getElementById('sessionsAvoided').textContent = sessionsAvoided;
+            
+            // Update debt tracker
+            const debtReduction = Math.min(savedAmount, 8000);
+            const remainingDebt = Math.max(8000 - savedAmount, 0);
+            const debtProgress = (debtReduction / 8000) * 100;
+            
+            document.getElementById('remainingDebt').textContent = `£${remainingDebt.toFixed(0)}`;
+            document.getElementById('debtFill').style.width = `${debtProgress}%`;
+            
+            // Update milestones
+            updateMilestones(savedAmount);
+            
+            // Rotate content periodically
+            if (Math.floor(elapsed) % 45 === 0) {
+                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                document.getElementById('quote').textContent = randomQuote;
+            }
+            
+            if (Math.floor(elapsed) % 120 === 0) {
+                const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
+                document.getElementById('affirmation').textContent = randomAffirmation;
+            }
+        }
+        
+        function updateMilestones(savedAmount) {
+            const milestones = document.querySelectorAll('.milestone');
+            milestones.forEach(milestone => {
+                const amount = parseInt(milestone.dataset.amount);
+                const status = milestone.querySelector('.status');
+                const timesAffordable = Math.floor(savedAmount / amount);
+                
+                if (timesAffordable > 0) {
+                    milestone.classList.add('achieved');
+                    status.textContent = `×${timesAffordable}`;
+                } else {
+                    milestone.classList.remove('achieved');
+                    status.textContent = '🔒';
+                }
+            });
+        }
+        
+        function confirmReset() {
+            const now = Date.now();
+            const elapsed = (now - startTime) / 1000;
+            const savedAmount = elapsed * perSecondAmount;
+            const days = Math.floor(elapsed / (24 * 60 * 60));
+            
+            if (savedAmount > personalBest) {
+                personalBest = savedAmount;
+                localStorage.setItem('personalBest', personalBest.toString());
+            }
+            
+            if (confirm(`You've saved £${savedAmount.toFixed(2)} over ${days} days. Reset and start fresh? This becomes your recorded attempt.`)) {
+                startTime = Date.now();
+                localStorage.setItem('startTime', startTime.toString());
+                updatePBDisplay();
+            }
+        }
+        
+        function updatePBDisplay() {
+            const pbElement = document.getElementById('pbText');
+            if (personalBest > 0) {
+                const pbDays = Math.floor((personalBest / perSecondAmount) / (24 * 60 * 60));
+                pbElement.textContent = `£${personalBest.toFixed(2)} (${pbDays} days) - Beat this!`;
+            } else {
+                pbElement.textContent = "Start your journey!";
+            }
+        }
+        
+        // Update counter every 100ms for smooth animation
+        setInterval(updateCounter, 100);
+        
+        // Initial updates
+        updateCounter();
+        updatePBDisplay();
+        
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
